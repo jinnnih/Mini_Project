@@ -50,8 +50,8 @@ class VisionNode(Node):
 
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        lower_orange = np.array([10, 200, 200])
-        upper_orange = np.array([20, 255, 255])
+        lower_orange = np.array([5, 100, 80])
+        upper_orange = np.array([35, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
 
         contours, _ = cv2.findContours(
