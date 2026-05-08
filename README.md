@@ -2,7 +2,6 @@
 ### — 자동세차장 차량 정렬 이지봇 —
 
 **ROS2 + OpenCV 기반 자동세차장 차량 정렬 유도 시스템**  
-K-Digital 스마트 모빌리티 자율주행 부트캠프 — 연희직업학교
 
 ![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue)
 ![OpenCV](https://img.shields.io/badge/Vision-OpenCV_4.6-teal)
