@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
 import cv2
 import numpy as np
 
@@ -9,19 +11,26 @@ class VisionNode(Node):
     def __init__(self):
         super().__init__('vision_node')
         self.publisher_ = self.create_publisher(Float32, 'lane_error', 10)
+        self.bridge = CvBridge()
+        self.latest_frame = None
+
+        self.subscription = self.create_subscription(
+            Image, '/camera/image_raw', self.image_callback, 10)
         self.timer = self.create_timer(0.1, self.timer_callback)
-        self.cap = cv2.VideoCapture(0)
         self.mode = 'carwash'
         self.get_logger().info(f'Vision Node Started | Mode: {self.mode}')
 
+    def image_callback(self, msg):
+        self.latest_frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+
     def timer_callback(self):
-        ret, frame = self.cap.read()
-        if not ret:
+        if self.latest_frame is not None:
+            frame = self.latest_frame
+        else:
             frame = self.create_test_image()
 
         result, error = self.detect_pillar_error(frame)
-
-        cv2.imwrite('/home/result.png', result)
+        cv2.imwrite('/home/zeenee/result.png', result)
 
         msg = Float32()
         msg.data = float(error)
@@ -31,7 +40,6 @@ class VisionNode(Node):
     def create_test_image(self):
         img = np.zeros((480, 640, 3), dtype=np.uint8)
         img[:] = (80, 80, 80)
-        # 왼쪽 기둥을 오른쪽으로 살짝 이동 (차가 왼쪽으로 치우친 상황)
         cv2.rectangle(img, (260, 0), (300, 480), (0, 120, 255), -1)
         cv2.rectangle(img, (380, 0), (420, 480), (0, 120, 255), -1)
         return img
@@ -40,15 +48,12 @@ class VisionNode(Node):
         height, width = frame.shape[:2]
         result = frame.copy()
 
-        # 1. HSV 변환
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        # 2. 주황색 필터
         lower_orange = np.array([10, 200, 200])
         upper_orange = np.array([20, 255, 255])
         mask = cv2.inRange(hsv, lower_orange, upper_orange)
 
-        # 3. 마스크에 바로 윤곽선 검출 (Canny 제거)
         contours, _ = cv2.findContours(
             mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -71,7 +76,6 @@ class VisionNode(Node):
                 else:
                     right_x = cx
 
-        # 4. 오차 계산
         car_center = width // 2
 
         if left_x is not None and right_x is not None:
@@ -86,7 +90,6 @@ class VisionNode(Node):
 
         error = pillar_center - car_center
 
-        # 5. 시각화
         cv2.line(result, (pillar_center, 0),
                  (pillar_center, height), (255, 0, 0), 2)
         cv2.line(result, (car_center, 0),
