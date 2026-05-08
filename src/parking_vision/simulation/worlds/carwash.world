@@ -1,6 +1,14 @@
 <?xml version="1.0" ?>
-<sdf version="1.6">
+<sdf version="1.8">
   <world name="carwash_world">
+
+    <!-- gz-sim 8 필수 시스템 플러그인 -->
+    <plugin filename="gz-sim8-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim8-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim8-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim8-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
 
     <!-- 조명 -->
     <light name="sun" type="directional">
@@ -38,25 +46,19 @@
       </link>
     </model>
 
-    <!-- 세차장 입구 왼쪽 기둥 -->
+    <!-- 세차장 입구 왼쪽 기둥 (주황색) -->
     <model name="pillar_left">
       <static>true</static>
       <pose>3 1.2 1 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>2.0</length>
-            </cylinder>
+            <cylinder><radius>0.1</radius><length>2.0</length></cylinder>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>2.0</length>
-            </cylinder>
+            <cylinder><radius>0.1</radius><length>2.0</length></cylinder>
           </geometry>
           <material>
             <ambient>1 0.5 0 1</ambient>
@@ -66,25 +68,19 @@
       </link>
     </model>
 
-    <!-- 세차장 입구 오른쪽 기둥 -->
+    <!-- 세차장 입구 오른쪽 기둥 (주황색) -->
     <model name="pillar_right">
       <static>true</static>
       <pose>3 -1.2 1 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>2.0</length>
-            </cylinder>
+            <cylinder><radius>0.1</radius><length>2.0</length></cylinder>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <cylinder>
-              <radius>0.1</radius>
-              <length>2.0</length>
-            </cylinder>
+            <cylinder><radius>0.1</radius><length>2.0</length></cylinder>
           </geometry>
           <material>
             <ambient>1 0.5 0 1</ambient>
@@ -94,24 +90,16 @@
       </link>
     </model>
 
-    <!-- 바닥 레일 왼쪽 -->
+    <!-- 바닥 레일 왼쪽 (노란색) -->
     <model name="rail_left">
       <static>true</static>
       <pose>1.5 1.0 0.02 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry>
-            <box>
-              <size>3.0 0.05 0.04</size>
-            </box>
-          </geometry>
+          <geometry><box><size>3.0 0.05 0.04</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry>
-            <box>
-              <size>3.0 0.05 0.04</size>
-            </box>
-          </geometry>
+          <geometry><box><size>3.0 0.05 0.04</size></box></geometry>
           <material>
             <ambient>1 1 0 1</ambient>
             <diffuse>1 1 0 1</diffuse>
@@ -120,30 +108,147 @@
       </link>
     </model>
 
-    <!-- 바닥 레일 오른쪽 -->
+    <!-- 바닥 레일 오른쪽 (노란색) -->
     <model name="rail_right">
       <static>true</static>
       <pose>1.5 -1.0 0.02 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry>
-            <box>
-              <size>3.0 0.05 0.04</size>
-            </box>
-          </geometry>
+          <geometry><box><size>3.0 0.05 0.04</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry>
-            <box>
-              <size>3.0 0.05 0.04</size>
-            </box>
-          </geometry>
+          <geometry><box><size>3.0 0.05 0.04</size></box></geometry>
           <material>
             <ambient>1 1 0 1</ambient>
             <diffuse>1 1 0 1</diffuse>
           </material>
         </visual>
       </link>
+    </model>
+
+    <!-- 로봇 차량 (기둥 앞 x=0에서 시작, +X 방향으로 전진) -->
+    <model name="robot_car">
+      <pose>0 0 0.1 0 0 0</pose>
+
+      <!-- 차량 본체 -->
+      <link name="base_link">
+        <inertial>
+          <mass>5.0</mass>
+          <inertia>
+            <ixx>0.1</ixx><iyy>0.2</iyy><izz>0.2</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry><box><size>0.6 0.4 0.15</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.6 0.4 0.15</size></box></geometry>
+          <material>
+            <ambient>0.2 0.4 0.8 1</ambient>
+            <diffuse>0.2 0.4 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- 왼쪽 바퀴 -->
+      <link name="left_wheel">
+        <pose>0 0.22 0 -1.5707963 0 0</pose>
+        <inertial>
+          <mass>0.3</mass>
+          <inertia>
+            <ixx>0.005</ixx><iyy>0.005</iyy><izz>0.005</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.1 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <joint name="left_wheel_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>left_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit><lower>-1e16</lower><upper>1e16</upper></limit>
+        </axis>
+      </joint>
+
+      <!-- 오른쪽 바퀴 -->
+      <link name="right_wheel">
+        <pose>0 -0.22 0 -1.5707963 0 0</pose>
+        <inertial>
+          <mass>0.3</mass>
+          <inertia>
+            <ixx>0.005</ixx><iyy>0.005</iyy><izz>0.005</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.1 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <joint name="right_wheel_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>right_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit><lower>-1e16</lower><upper>1e16</upper></limit>
+        </axis>
+      </joint>
+
+      <!-- 카메라 링크 (차량 앞쪽 상단, 전방 주시) -->
+      <link name="camera_link">
+        <pose>0.35 0 0.2 0 0.2 0</pose>
+        <sensor name="camera" type="camera">
+          <always_on>true</always_on>
+          <update_rate>30</update_rate>
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <topic>/camera/image_raw</topic>
+        </sensor>
+      </link>
+
+      <joint name="camera_joint" type="fixed">
+        <parent>base_link</parent>
+        <child>camera_link</child>
+      </joint>
+
+      <!-- DiffDrive 플러그인 (gz-sim 8용) -->
+      <plugin filename="gz-sim8-diff-drive-system" name="gz::sim::systems::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>0.44</wheel_separation>
+        <wheel_radius>0.1</wheel_radius>
+        <topic>/cmd_vel</topic>
+      </plugin>
+
     </model>
 
   </world>
