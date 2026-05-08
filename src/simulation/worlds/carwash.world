@@ -1,0 +1,150 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="carwash_world">
+
+    <!-- 조명 -->
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- 바닥 (회색 도로) -->
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.3 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 세차장 입구 왼쪽 기둥 -->
+    <model name="pillar_left">
+      <static>true</static>
+      <pose>3 1.2 1 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1 0.5 0 1</ambient>
+            <diffuse>1 0.5 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 세차장 입구 오른쪽 기둥 -->
+    <model name="pillar_right">
+      <static>true</static>
+      <pose>3 -1.2 1 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1 0.5 0 1</ambient>
+            <diffuse>1 0.5 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 바닥 레일 왼쪽 -->
+    <model name="rail_left">
+      <static>true</static>
+      <pose>1.5 1.0 0.02 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>3.0 0.05 0.04</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>3.0 0.05 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 바닥 레일 오른쪽 -->
+    <model name="rail_right">
+      <static>true</static>
+      <pose>1.5 -1.0 0.02 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>3.0 0.05 0.04</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>3.0 0.05 0.04</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
