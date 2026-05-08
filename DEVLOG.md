@@ -16,9 +16,9 @@
 
 ---
 
-## ✅ Day 2 — 2026-05-08 (완료)
+## ✅ Day 2 — 2026-05-08 (완료, 추가 세션 포함)
 
-**주제**: Vision Pipeline + Gazebo 연결 준비
+**주제**: Vision Pipeline + Gazebo 완전 통합
 
 ### 완성된 기능
 
@@ -66,32 +66,54 @@
 #### package.xml
 - `cv_bridge`, `ros_gz_bridge` 의존성 추가
 
-### 오늘 확인된 제약사항
-- **VMware 3D 가속 미활성화** → Gazebo 카메라 센서 렌더링 불가
-  - 오류: `VMware: No 3D enabled (0, Success)`
-  - 원인: M2 Mac + VMware Fusion에서 3D 가속 설정이 꺼진 상태
-  - 해결: VM 종료 후 VMware Fusion → Settings → Display → "Accelerate 3D Graphics" 체크
+### 추가 세션 — Gazebo 완전 통합 완료
+
+#### 문제 해결 과정
+1. **패키지 구조 버그 발견**: `colcon`이 `src/Mini_Project/src/` (바깥 패키지)를 빌드하는데, 수정은 `src/Mini_Project/src/parking_vision/` (안쪽)에만 했던 문제 → 바깥 경로 파일 동기화로 해결
+2. **VMware 3D 가속**: VMware Fusion → Settings → Display → "Accelerate 3D Graphics" 활성화
+3. **소프트웨어 렌더링**: 환경변수 `LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5` 추가 → Gazebo GUI + 카메라 센서 모두 정상 렌더링
+4. **기둥 색상 조정**: SDF에 `<emissive>0.8 0.3 0 1</emissive>` 추가 → 조명에 관계없이 주황색 유지
+5. **HSV 범위 조정**: `H:10~20, S:200, V:200` → `H:5~35, S:100, V:80` (소프트웨어 렌더링 색상 대응)
+
+#### 최종 확인된 동작
+```
+[vision_node] Pillar error: -1.00px   ← 기둥 감지 성공!
+L:56 R:584                             ← 좌/우 기둥 X좌표
+Error: 0.0px (화면 출력)               ← 거의 정중앙 정렬
+```
+
+#### 확인된 토픽 (전체 파이프라인)
+- `/camera/image_raw` — Gazebo → ros_gz_bridge → vision_node ✅
+- `/lane_error` — vision_node → control_node ✅
+- `/cmd_vel` — control_node → ros_gz_bridge → Gazebo DiffDrive ✅
+- `/model/robot_car/odometry` — 로봇 위치 정보 ✅
+
+#### Gazebo 실행 명령어 (소프트웨어 렌더링)
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/ros2_ws/install/setup.bash
+DISPLAY=:0 LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5 \
+  gz sim ~/ros2_ws/install/parking_vision/share/parking_vision/simulation/worlds/carwash.world -r
+```
+또는 launch 파일로 전체 실행:
+```bash
+ros2 launch parking_vision carwash.launch.py
+```
 
 ---
 
 ## ⬜ Day 3 — 2026-05-15 (예정)
 
-**주제**: ROS2 + Gazebo 통합
-
-### Day 3 시작 전 체크리스트
-- [ ] VMware Fusion → Display → **"Accelerate 3D Graphics"** 활성화
-- [ ] VM 재시작 후 `glxinfo | grep renderer` 로 확인
-      → `SVGA3D` 또는 `llvmpipe` 나오면 성공
+**주제**: Gazebo 차량 실제 이동 + 정렬 시뮬레이션
 
 ### Day 3 작업 목표
-1. Gazebo 카메라 렌더링 확인 (`/camera/image_raw` 토픽 등장 여부)
-2. `ros2 launch parking_vision carwash.launch.py` 전체 실행
-3. Gazebo 차량이 vision_node 오차값 기반으로 실제 이동하는지 확인
-4. 기둥 중앙 정렬 후 자동 정지 확인
+1. 로봇이 실제로 cmd_vel 받아 전진하면서 기둥을 향해 이동하는지 확인
+2. 기둥 중앙 오차 기반 자동 조향 → 정렬 완료 후 정지 동작 검증
+3. result.png 실시간 확인으로 시각적 디버깅
+4. 필요 시 PID 게인 튜닝
 
 ### Day 3 실행 명령어
 ```bash
-# 터미널 하나에서:
 source /opt/ros/jazzy/setup.bash
 source ~/ros2_ws/install/setup.bash
 ros2 launch parking_vision carwash.launch.py

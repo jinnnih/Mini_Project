@@ -117,8 +117,8 @@ flowchart TD
 | 회차 | 날짜 | 주제 | 주요 작업 | 결과물 |
 |------|------|------|-----------|--------|
 | ✅ Day 1 | 04.24 (금) | 환경 설정 | Docker ros:jazzy 컨테이너 구축, Gazebo 8.11 설치, VS Code Dev Containers 세팅 | 개발환경 구축 완료 |
-| ✅ Day 2 | 05.08 (금) | Vision Pipeline + Gazebo 연결 준비 | HSV 기둥 검출, findContours, 오차 계산, PID 제어, ros_gz_bridge 연결, Gazebo 로봇 차량 모델 + gz-sim8 플러그인 추가 | 두 노드 통신 확인, Gazebo 월드 완성, launch 파일 완성 |
-| ⬜ Day 3 | 05.15 (금) | ROS2 + Gazebo 통합 | VMware 3D 가속 활성화, vision_node ↔ control_node ↔ Gazebo 차량 연결, 전체 launch 실행 | Gazebo 차량 정렬 시뮬레이션 |
+| ✅ Day 2 | 05.08 (금) | Vision Pipeline + Gazebo 완전 통합 | HSV 기둥 검출, PID 제어, ros_gz_bridge, Gazebo 로봇 모델, 소프트웨어 렌더링 적용, 기둥 감지 실증 | Gazebo 카메라 → 기둥 검출 성공 (Error: 0px), 전체 파이프라인 연결 완료 |
+| ⬜ Day 3 | 05.15 (금) | 차량 이동 + 정렬 시뮬레이션 | 로봇 전진 이동, 오차 기반 자동 조향, 정렬 완료 후 정지 검증 | Gazebo 차량 정렬 시뮬레이션 영상 |
 | ⬜ Day 4 | 05.22 (금) | 통합 + 마무리 | Arduino LED 연동, 시스템 통합 테스트 | 데모 영상 + 포트폴리오 완성 |
 
 ---
@@ -164,7 +164,8 @@ ros2 run parking_vision control_node
 ```bash
 ros2 launch parking_vision carwash.launch.py
 ```
-> ⚠️ VMware 3D 가속 활성화 필요 (Gazebo 카메라 렌더링)
+> VMware Fusion 환경에서는 소프트웨어 렌더링이 자동 적용됩니다.  
+> Gazebo 창은 Ubuntu 바탕화면에 별도 창으로 열립니다.
 
 ---
 
