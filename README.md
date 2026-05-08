@@ -28,16 +28,16 @@
 | 구분 | 내용 |
 |------|------|
 | **호스트 머신** | MacBook Pro M2 (macOS) |
-| **컨테이너** | Docker (`ros:jazzy` 이미지) |
+| **VM** | VMware Fusion 13 + Ubuntu 24.04 (Noble) |
 | **ROS 버전** | ROS2 Jazzy |
 | **Gazebo 버전** | Gazebo Sim 8.11.0 |
 | **OpenCV 버전** | 4.6.0 |
 | **Python 버전** | 3.12.3 |
 | **영상 입력** | Gazebo 가상 카메라 (`/camera/image_raw` 토픽) |
-| **편집기** | VS Code (Dev Containers 익스텐션) |
+| **편집기** | VS Code + Claude Code |
 
-> ⚠️ M2 Mac 환경 특이사항: ARM64 아키텍처로 인해 Docker 기반 개발환경 채택.  
-> Ubuntu 24.04 (Noble) VM 환경으로 전환 예정 (Day 3~4).
+> ⚠️ Day 3 전 VMware Fusion → Settings → Display → **"Accelerate 3D Graphics"** 활성화 필요  
+> (Gazebo 카메라 렌더링에 3D 가속 필요)
 
 ---
 
@@ -46,10 +46,11 @@
 | Category | Technology |
 |----------|------------|
 | Robotics | ROS2 Jazzy, Gazebo Sim 8.11 |
-| Vision | OpenCV 4.6 (HSV 필터링, findContours) |
+| Vision | OpenCV 4.6 (HSV 필터링, findContours), cv_bridge |
+| Bridge | ros_gz_bridge (Gazebo ↔ ROS2 토픽 연결) |
 | Hardware | Arduino (LED 피드백) |
 | Language | Python 3.12 |
-| Infra | Docker (`ros:jazzy`), VS Code Dev Containers |
+| Infra | VMware Fusion 13, Ubuntu 24.04, VS Code |
 
 ---
 
@@ -116,8 +117,8 @@ flowchart TD
 | 회차 | 날짜 | 주제 | 주요 작업 | 결과물 |
 |------|------|------|-----------|--------|
 | ✅ Day 1 | 04.24 (금) | 환경 설정 | Docker ros:jazzy 컨테이너 구축, Gazebo 8.11 설치, VS Code Dev Containers 세팅 | 개발환경 구축 완료 |
-| ✅ Day 2 | 05.08 (금) | Vision Pipeline | HSV 기둥 검출, findContours, 오차 계산, ROS2 토픽 퍼블리시, PID 제어, Gazebo 세차장 월드 작성 | 기둥 검출 영상 + 오차값 출력 + 두 노드 통신 확인 |
-| ⬜ Day 3 | 05.15 (금) | ROS2 + Gazebo 통합 | Ubuntu 24.04 환경 전환, vision_node ↔ control_node ↔ Gazebo 차량 연결 | Gazebo 차량 정렬 시뮬레이션 |
+| ✅ Day 2 | 05.08 (금) | Vision Pipeline + Gazebo 연결 준비 | HSV 기둥 검출, findContours, 오차 계산, PID 제어, ros_gz_bridge 연결, Gazebo 로봇 차량 모델 + gz-sim8 플러그인 추가 | 두 노드 통신 확인, Gazebo 월드 완성, launch 파일 완성 |
+| ⬜ Day 3 | 05.15 (금) | ROS2 + Gazebo 통합 | VMware 3D 가속 활성화, vision_node ↔ control_node ↔ Gazebo 차량 연결, 전체 launch 실행 | Gazebo 차량 정렬 시뮬레이션 |
 | ⬜ Day 4 | 05.22 (금) | 통합 + 마무리 | Arduino LED 연동, 시스템 통합 테스트 | 데모 영상 + 포트폴리오 완성 |
 
 ---
@@ -134,13 +135,6 @@ flowchart TD
 
 ## ▶️ 실행 방법
 
-### 0. 사전 준비
-```bash
-# Docker 컨테이너 시작
-docker start ros2_jazzy
-docker exec -it ros2_jazzy bash
-```
-
 ### 1. 환경 설정
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -151,25 +145,26 @@ source ~/ros2_ws/install/setup.bash
 ```bash
 cd ~/ros2_ws
 colcon build --packages-select parking_vision
+source install/setup.bash
 ```
 
-### 3. Vision Node 실행
+### 3. 노드 개별 실행 (테스트용)
+
+**Vision Node** (터미널 1):
 ```bash
 ros2 run parking_vision vision_node
 ```
 
-### 4. Control Node 실행 (새 터미널)
+**Control Node** (터미널 2):
 ```bash
-docker exec -it ros2_jazzy bash
-source /opt/ros/jazzy/setup.bash
-source ~/ros2_ws/install/setup.bash
 ros2 run parking_vision control_node
 ```
 
-### 5. 전체 시스템 launch (Day 3 이후)
+### 4. 전체 시스템 한 번에 실행 (Gazebo + 두 노드 + 브릿지)
 ```bash
 ros2 launch parking_vision carwash.launch.py
 ```
+> ⚠️ VMware 3D 가속 활성화 필요 (Gazebo 카메라 렌더링)
 
 ---
 
