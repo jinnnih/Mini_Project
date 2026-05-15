@@ -268,6 +268,81 @@ Day 3 기본 시뮬레이션(직선 주행)이 완료됐지만 세계가 너무 
 
 ---
 
+## ✅ Day 3 Part 3 — 2026-05-15 (완료)
+
+**주제**: 메카넘 드라이브 완전 구현 + 차량 하부 진입 자율주행 완성
+
+### 배경 / 동기
+
+직전 세션에서 월드를 완전 재설계(세차장 부스 + 정적 차량 모델 + 허브 감지)했으나
+MecanumDrive 플러그인이 동작하지 않아 로봇이 움직이지 않는 문제 발생.
+
+- **목표**: 메카넘 드라이브 수리 → APPROACH → ALIGN → ENTER → STOPPED 전체 파이프라인 완성
+
+---
+
+### 버그 수정 — 메카넘 드라이브 3가지 근본 원인
+
+#### 1. 바퀴 z 오프셋 오류 (-0.015 → 0.0)
+- **문제**: 바퀴 링크 pose가 `z=-0.015`이면 바퀴 중심이 world z=0.040, 반경 0.055이므로 바닥을 1.5cm 파고듦
+- **해결**: 바퀴 z=0.0 → 바퀴 중심 world z=0.055 → 바닥에 정확히 접지
+
+#### 2. joint axis 방향 오류 (`0 1 0` → `0 0 1`)
+- **문제**: 바퀴 링크가 roll=-1.5708로 기울어진 상태에서 axis=`0 1 0`(로컬 Y)은 **월드 수직축(Z) 회전** → 바퀴가 제자리에서 돌아감!
+- **해결**: axis=`0 0 1`(로컬 Z)로 변경 → 월드 Y축(앞뒤 구름 방향) 회전 ✓
+
+#### 3. MecanumDrive 플러그인 파라미터명 오류
+- **문제**: `<rear_left_joint>`, `<rear_right_joint>` → 공식 예제는 **`<back_left_joint>`, `<back_right_joint>`**
+- **해결**: 태그명 교정 → 뒷바퀴 2개가 실제로 제어됨
+
+#### 추가 개선
+- 바퀴 collision: cylinder → **sphere + fdir1** (메카넘 45도 롤러 마찰 시뮬레이션)
+- joint limit: effort/velocity → position lower/upper=±inf (ODE 호환)
+- 플러그인 파일명: `gz-sim8-mecanum-drive-system` → `gz-sim-mecanum-drive-system`
+- 바퀴 roll: +1.5708 → **-1.5708** (공식 예제 convention 통일)
+
+---
+
+### 비전 파이프라인 개선 (vision_node.py)
+
+#### 문제: APPROACH→ALIGN 조기 전환
+- 로봇이 차량에서 5m 거리에서도 허브 감지 성공 (L+R=98px)
+- 조기 ALIGN 전환 → ENTER 시작 위치가 너무 멀어 차량 하부에 못 들어감
+
+#### 해결: 픽셀 수 근접도 게이팅
+```python
+# hub_px > 400이면 로봇이 허브 ~2m 이내에 있음을 의미
+if self.hub_found and abs(error) < 40.0 and self.hub_px > 400:
+    self.approach_count += 1
+    if self.approach_count >= 5:
+        self.phase = ALIGN
+```
+
+#### enter_ticks 조정
+- 기존 120 → **2500** (차량 하부를 완전히 통과할 충분한 거리 확보)
+- 실측: 로봇 최종 위치 world x=3.71m (차량 본체 중심, 앞바퀴 1.5m ~ 뒷바퀴 4.5m 사이)
+
+---
+
+### 최종 시뮬레이션 결과
+
+```
+[vision_node] Vision Node Started | Phase: APPROACH
+... (로봇 전진 중, hub_px 80→400 증가 대기)
+[vision_node] → Phase: ALIGN (횡이동 정렬 시작)   ← hub_px>400 도달
+[control_node] → Phase: ALIGN
+[vision_node] → Phase: ENTER (차량 하부 직진 진입)  ← error<8px × 10틱
+[control_node] → Phase: ENTER
+[vision_node] ✅ STOPPED — 차량 하부 진입 완료!    ← 2500틱 완료
+[control_node] [STOPPED] 정렬 완료 — 차량 하부 진입 성공 ✅
+```
+
+**최종 로봇 위치**: world x=3.71m (차량 본체 하부 정중앙) ✅
+**정렬 오차**: error=-1px (거의 완벽한 허브 중앙 정렬)
+**result.png**: 탑뷰에서 로봇이 차량 하부에 위치 확인 ✅
+
+---
+
 ## ⬜ Day 4 — 2026-05-22 (예정)
 
 **주제**: 통합 + 마무리
