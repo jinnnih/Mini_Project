@@ -56,8 +56,7 @@ class VisionNode(Node):
         if self.phase == PARKING:
             result, error = self._detect_parking_marker(frame)
         elif self.phase == LINE_FOLLOW:
-            # 직선 전진 단계: 기둥 감지 여부만 체크, 에러는 0으로 유지
-            result, error = self._drive_to_pillars(frame)
+            result, error = self._follow_lane(frame)
         elif self.phase == PILLAR_ALIGN:
             result, error = self._detect_pillars(frame)
         else:
@@ -95,8 +94,8 @@ class VisionNode(Node):
 
         elif self.phase == LINE_FOLLOW:
             self.phase2_ticks += 1
-            # 최소 200틱(20초) 주행 후 기둥 근접 감지 허용
-            if self.phase2_ticks > 200 and self.pillar_found:
+            # 최소 500틱(50초) 주행 후 기둥 근접 감지 허용 (U자 경로 길이 고려)
+            if self.phase2_ticks > 500 and self.pillar_found:
                 self.pillar_seen_count += 1
                 if self.pillar_seen_count >= 8:
                     self.phase = PILLAR_ALIGN
@@ -107,9 +106,9 @@ class VisionNode(Node):
                     self.get_logger().info('→ Phase 3: PILLAR ALIGN 시작')
             elif not self.pillar_found:
                 self.pillar_seen_count = 0
-            if self.phase2_ticks % 20 == 0:  # 2초마다 진행 로그
+            if self.phase2_ticks % 50 == 0:  # 5초마다 진행 로그
                 self.get_logger().info(
-                    f'[DRIVE] tick:{self.phase2_ticks}/200 pillar_seen:{self.pillar_seen_count}')
+                    f'[LANE] tick:{self.phase2_ticks}/500 pillar_seen:{self.pillar_seen_count}')
 
         elif self.phase == PILLAR_ALIGN:
             self.phase3_ticks += 1
@@ -184,27 +183,52 @@ class VisionNode(Node):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 220, 220), 2)
         return result, error
 
-    def _drive_to_pillars(self, frame):
-        """Phase 2: 직선 전진. 기둥이 충분히 크게 보일 때(가까워졌을 때)만 Phase 3 전환."""
+    def _follow_lane(self, frame):
+        """Phase 2: 흰색 센터라인 추종 + 근거리 기둥 감지."""
         height, width = frame.shape[:2]
         result = frame.copy()
 
-        # 근거리 기둥 감지: 면적 800px 이상 = 약 1~2m 이내
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, np.array([5, 100, 80]), np.array([35, 255, 255]))
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        self.pillar_found = any(
-            cv2.contourArea(c) > 800
-            for c in contours
-            if cv2.contourArea(c) > 800
-        )
+        # 하단 40% ROI (가까운 선 감지)
+        roi_top = int(height * 0.6)
+        roi = frame[roi_top:, :]
+        hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-        status = '기둥 근접 감지!' if self.pillar_found else '전진 중...'
-        cv2.putText(result, f'DRIVE → CARWASH | {status}', (10, 35),
+        # 흰색 레인 마킹 (emissive 0.9 → V 200+ 보장)
+        mask = cv2.inRange(hsv_roi, np.array([0, 0, 200]), np.array([180, 35, 255]))
+        kernel = np.ones((3, 3), np.uint8)
+        mask = cv2.erode(mask, kernel, iterations=1)
+        mask = cv2.dilate(mask, kernel, iterations=2)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        valid = [c for c in contours if cv2.contourArea(c) > 120]
+
+        # 기둥 근접 감지 (Phase 3 전환용)
+        hsv_full = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        orange_mask = cv2.inRange(hsv_full, np.array([5, 100, 80]), np.array([35, 255, 255]))
+        orange_contours, _ = cv2.findContours(orange_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        self.pillar_found = any(cv2.contourArea(c) > 800 for c in orange_contours)
+
+        if not valid:
+            cv2.putText(result, 'LANE: 탐색중... (직진 유지)', (10, 35),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
+            cv2.putText(result, f'tick:{self.phase2_ticks} pillar:{self.pillar_seen_count}/8',
+                        (10, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (180, 180, 0), 2)
+            return result, 0.0
+
+        largest = max(valid, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest)
+        cx = x + w // 2
+        error = cx - width // 2
+
+        cv2.rectangle(result, (x, y + roi_top), (x + w, y + h + roi_top), (0, 220, 220), 2)
+        cv2.line(result, (cx, 0), (cx, height), (0, 200, 200), 2)
+        cv2.line(result, (width // 2, 0), (width // 2, height), (0, 0, 200), 2)
+        direction = '↰' if error < -15 else ('↱' if error > 15 else '→')
+        cv2.putText(result, f'LANE {direction} | error:{error:.0f}px', (10, 35),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 220, 220), 2)
-        cv2.putText(result, f'pillar_cnt:{self.pillar_seen_count}/8', (10, 65),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (180, 180, 0), 2)
-        return result, 0.0  # 항상 error=0 (직선 주행)
+        cv2.putText(result, f'tick:{self.phase2_ticks} pillar:{self.pillar_seen_count}/8',
+                    (10, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (180, 180, 0), 2)
+        return result, error
 
     def _detect_pillars(self, frame):
         """주황색 기둥 검출 (기존 로직)."""
