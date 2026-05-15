@@ -19,117 +19,405 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- 바닥 (회색 도로) -->
+    <!-- 배경 지면 (어두운 회색) -->
     <model name="ground">
       <static>true</static>
       <link name="link">
         <collision name="collision">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>30 10</size>
-            </plane>
-          </geometry>
+          <geometry><plane><normal>0 0 1</normal><size>50 30</size></plane></geometry>
         </collision>
         <visual name="visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>30 10</size>
-            </plane>
-          </geometry>
+          <geometry><plane><normal>0 0 1</normal><size>50 30</size></plane></geometry>
           <material>
-            <ambient>0.35 0.35 0.35 1</ambient>
-            <diffuse>0.35 0.35 0.35 1</diffuse>
+            <ambient>0.22 0.22 0.22 1</ambient>
+            <diffuse>0.22 0.22 0.22 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ====== 도로면 (세 구간 + 코너) ====== -->
+    <!-- Seg1: 동쪽 직선 (y=0 centerline, x=-4.5~3.2) -->
+    <model name="road_seg1">
+      <static>true</static>
+      <pose>-0.65 0 0.002 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>7.7 2.4 0.004</size></box></geometry>
+          <material>
+            <ambient>0.40 0.40 0.40 1</ambient>
+            <diffuse>0.40 0.40 0.40 1</diffuse>
+            <emissive>0.05 0.05 0.05 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Seg2: 남쪽 직선 (x=2 centerline, y=0~-3.5) -->
+    <model name="road_seg2">
+      <static>true</static>
+      <pose>2 -1.75 0.002 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>2.4 3.5 0.004</size></box></geometry>
+          <material>
+            <ambient>0.40 0.40 0.40 1</ambient>
+            <diffuse>0.40 0.40 0.40 1</diffuse>
+            <emissive>0.05 0.05 0.05 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Seg3: 서쪽 직선 (y=-3 centerline, x=-2~3.2) -->
+    <model name="road_seg3">
+      <static>true</static>
+      <pose>0.6 -3 0.002 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5.2 2.4 0.004</size></box></geometry>
+          <material>
+            <ambient>0.40 0.40 0.40 1</ambient>
+            <diffuse>0.40 0.40 0.40 1</diffuse>
+            <emissive>0.05 0.05 0.05 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ====== 도로 경계 (연석) ====== -->
+    <!-- Seg1 북쪽 경계 (y=1.2) -->
+    <model name="curb_seg1_n">
+      <static>true</static>
+      <pose>-0.65 1.25 0.05 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>7.7 0.1 0.1</size></box></geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <emissive>0.1 0.1 0.1 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>7.7 0.1 0.1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- Seg1 남쪽 경계 (y=-1.2, 코너 전까지) -->
+    <model name="curb_seg1_s">
+      <static>true</static>
+      <pose>-1.25 -1.25 0.05 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>6.5 0.1 0.1</size></box></geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <emissive>0.1 0.1 0.1 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>6.5 0.1 0.1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- Seg2 동쪽 경계 (x=3.2) -->
+    <model name="curb_seg2_e">
+      <static>true</static>
+      <pose>3.25 -1.75 0.05 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.1 3.5 0.1</size></box></geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <emissive>0.1 0.1 0.1 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.1 3.5 0.1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- Seg3 북쪽 경계 (y=-1.8) -->
+    <model name="curb_seg3_n">
+      <static>true</static>
+      <pose>0.6 -1.75 0.05 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5.2 0.1 0.1</size></box></geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <emissive>0.1 0.1 0.1 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5.2 0.1 0.1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- Seg3 남쪽 경계 (y=-4.2) -->
+    <model name="curb_seg3_s">
+      <static>true</static>
+      <pose>0.6 -4.25 0.05 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5.2 0.1 0.1</size></box></geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <emissive>0.1 0.1 0.1 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>5.2 0.1 0.1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- ====== 흰색 센터라인 마킹 ====== -->
+    <!-- Seg1 centerline: x=-3.5~1.8, y=0 -->
+    <model name="lane_seg1">
+      <static>true</static>
+      <pose>-0.85 0 0.006 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>5.3 0.12 0.003</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <emissive>0.9 0.9 0.9 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Corner 1 대각선 (1.9, -0.15): Seg1→Seg2 연결 -->
+    <model name="lane_corner1">
+      <static>true</static>
+      <pose>1.92 -0.13 0.006 0 0 -0.7854</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.42 0.12 0.003</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <emissive>0.9 0.9 0.9 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Seg2 centerline: x=2, y=-0.3~-2.7 -->
+    <model name="lane_seg2">
+      <static>true</static>
+      <pose>2 -1.5 0.006 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.12 2.4 0.003</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <emissive>0.9 0.9 0.9 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Corner 2 대각선 (1.88, -2.87): Seg2→Seg3 연결 -->
+    <model name="lane_corner2">
+      <static>true</static>
+      <pose>1.88 -2.87 0.006 0 0 -2.3562</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.42 0.12 0.003</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <emissive>0.9 0.9 0.9 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Seg3 centerline: y=-3, x=1.7~0.2 -->
+    <model name="lane_seg3">
+      <static>true</static>
+      <pose>0.95 -3 0.006 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1.5 0.12 0.003</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <emissive>0.9 0.9 0.9 1</emissive>
           </material>
         </visual>
       </link>
     </model>
 
     <!-- ====== Phase 1: 정차구역 마커 (파란색) ====== -->
-    <!-- 로봇 시작 위치(x=-5)에서 1m 앞(x=-4)에 위치 -->
     <model name="parking_marker">
       <static>true</static>
-      <pose>-3.5 0 0.005 0 0 0</pose>
+      <pose>-3 0 0.006 0 0 0</pose>
       <link name="link">
         <visual name="visual">
-          <geometry><box><size>1.0 1.5 0.01</size></box></geometry>
+          <geometry><box><size>1.2 0.6 0.004</size></box></geometry>
           <material>
-            <ambient>0 0 1 1</ambient>
-            <diffuse>0 0.2 1 1</diffuse>
-            <emissive>0 0 0.6 1</emissive>
+            <ambient>0 0.1 1 1</ambient>
+            <diffuse>0 0.1 1 1</diffuse>
+            <emissive>0 0 0.7 1</emissive>
           </material>
         </visual>
         <collision name="collision">
-          <geometry><box><size>1.0 1.5 0.01</size></box></geometry>
+          <geometry><box><size>1.2 0.6 0.004</size></box></geometry>
         </collision>
       </link>
     </model>
-
-    <!-- 정차구역 테두리 표시 (흰색) -->
-    <model name="parking_border_left">
+    <!-- 정차구역 테두리 (흰색) -->
+    <model name="parking_border_n">
       <static>true</static>
-      <pose>-3.5 0.85 0.005 0 0 0</pose>
+      <pose>-3 0.38 0.006 0 0 0</pose>
       <link name="link">
         <visual name="visual">
-          <geometry><box><size>1.4 0.1 0.01</size></box></geometry>
-          <material>
-            <ambient>1 1 1 1</ambient>
-            <diffuse>1 1 1 1</diffuse>
-            <emissive>0.5 0.5 0.5 1</emissive>
-          </material>
+          <geometry><box><size>1.6 0.08 0.004</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse><emissive>0.6 0.6 0.6 1</emissive></material>
         </visual>
       </link>
     </model>
-    <model name="parking_border_right">
+    <model name="parking_border_s">
       <static>true</static>
-      <pose>-3.5 -0.85 0.005 0 0 0</pose>
+      <pose>-3 -0.38 0.006 0 0 0</pose>
       <link name="link">
         <visual name="visual">
-          <geometry><box><size>1.4 0.1 0.01</size></box></geometry>
-          <material>
-            <ambient>1 1 1 1</ambient>
-            <diffuse>1 1 1 1</diffuse>
-            <emissive>0.5 0.5 0.5 1</emissive>
-          </material>
+          <geometry><box><size>1.6 0.08 0.004</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse><emissive>0.6 0.6 0.6 1</emissive></material>
+        </visual>
+      </link>
+    </model>
+    <model name="parking_border_e">
+      <static>true</static>
+      <pose>-2.22 0 0.006 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.08 0.84 0.004</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse><emissive>0.6 0.6 0.6 1</emissive></material>
+        </visual>
+      </link>
+    </model>
+    <model name="parking_border_w">
+      <static>true</static>
+      <pose>-3.78 0 0.006 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.08 0.84 0.004</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse><emissive>0.6 0.6 0.6 1</emissive></material>
         </visual>
       </link>
     </model>
 
-    <!-- ====== Phase 2: 바닥 유도선 (흰색) ====== -->
-    <!-- x=-3 (마커 끝) ~ x=2.5 (기둥 직전), 중앙선 -->
-    <model name="guide_line">
+    <!-- ====== 세차장 건물 구조 ====== -->
+    <!-- 북쪽 벽 (y=-1.8) -->
+    <model name="carwash_wall_n">
       <static>true</static>
-      <pose>-0.25 0 0.005 0 0 0</pose>
+      <pose>-1 -1.88 0.7 0 0 0</pose>
       <link name="link">
         <visual name="visual">
-          <geometry><box><size>5.5 0.35 0.01</size></box></geometry>
+          <geometry><box><size>2.2 0.25 1.4</size></box></geometry>
           <material>
-            <ambient>1 1 1 1</ambient>
-            <diffuse>1 1 1 1</diffuse>
-            <emissive>0.4 0.4 0.4 1</emissive>
+            <ambient>0.62 0.64 0.70 1</ambient>
+            <diffuse>0.62 0.64 0.70 1</diffuse>
+            <emissive>0.05 0.05 0.08 1</emissive>
           </material>
         </visual>
         <collision name="collision">
-          <geometry><box><size>5.5 0.35 0.01</size></box></geometry>
+          <geometry><box><size>2.2 0.25 1.4</size></box></geometry>
         </collision>
+      </link>
+    </model>
+    <!-- 남쪽 벽 (y=-4.2) -->
+    <model name="carwash_wall_s">
+      <static>true</static>
+      <pose>-1 -4.12 0.7 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>2.2 0.25 1.4</size></box></geometry>
+          <material>
+            <ambient>0.62 0.64 0.70 1</ambient>
+            <diffuse>0.62 0.64 0.70 1</diffuse>
+            <emissive>0.05 0.05 0.08 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>2.2 0.25 1.4</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- 뒷벽 (x=-2.1) -->
+    <model name="carwash_wall_back">
+      <static>true</static>
+      <pose>-2.12 -3 0.7 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.25 2.5 1.4</size></box></geometry>
+          <material>
+            <ambient>0.62 0.64 0.70 1</ambient>
+            <diffuse>0.62 0.64 0.70 1</diffuse>
+            <emissive>0.05 0.05 0.08 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>0.25 2.5 1.4</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- 지붕 (어두운 색) -->
+    <model name="carwash_roof">
+      <static>true</static>
+      <pose>-0.9 -3 1.45 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>2.5 2.5 0.18</size></box></geometry>
+          <material>
+            <ambient>0.20 0.20 0.28 1</ambient>
+            <diffuse>0.20 0.20 0.28 1</diffuse>
+            <emissive>0.02 0.02 0.05 1</emissive>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>2.5 2.5 0.18</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <!-- 입구 처마 (캐노피) -->
+    <model name="carwash_canopy">
+      <static>true</static>
+      <pose>0.3 -3 1.45 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>0.6 2.5 0.12</size></box></geometry>
+          <material>
+            <ambient>0.20 0.20 0.28 1</ambient>
+            <diffuse>0.20 0.20 0.28 1</diffuse>
+            <emissive>0.02 0.02 0.05 1</emissive>
+          </material>
+        </visual>
       </link>
     </model>
 
     <!-- ====== Phase 3: 세차장 입구 기둥 (주황색) ====== -->
-    <model name="pillar_left">
+    <!-- 북쪽 기둥: x=0, y=-2.2 -->
+    <model name="pillar_north">
       <static>true</static>
-      <pose>3 1.2 1 0 0 0</pose>
+      <pose>0 -2.2 0.65 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry>
-            <cylinder><radius>0.12</radius><length>2.0</length></cylinder>
-          </geometry>
+          <geometry><box><size>0.2 0.2 1.3</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry>
-            <cylinder><radius>0.12</radius><length>2.0</length></cylinder>
-          </geometry>
+          <geometry><box><size>0.2 0.2 1.3</size></box></geometry>
           <material>
             <ambient>1 0.5 0 1</ambient>
             <diffuse>1 0.5 0 1</diffuse>
@@ -138,20 +426,16 @@
         </visual>
       </link>
     </model>
-
-    <model name="pillar_right">
+    <!-- 남쪽 기둥: x=0, y=-3.8 -->
+    <model name="pillar_south">
       <static>true</static>
-      <pose>3 -1.2 1 0 0 0</pose>
+      <pose>0 -3.8 0.65 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry>
-            <cylinder><radius>0.12</radius><length>2.0</length></cylinder>
-          </geometry>
+          <geometry><box><size>0.2 0.2 1.3</size></box></geometry>
         </collision>
         <visual name="visual">
-          <geometry>
-            <cylinder><radius>0.12</radius><length>2.0</length></cylinder>
-          </geometry>
+          <geometry><box><size>0.2 0.2 1.3</size></box></geometry>
           <material>
             <ambient>1 0.5 0 1</ambient>
             <diffuse>1 0.5 0 1</diffuse>
@@ -160,67 +444,31 @@
         </visual>
       </link>
     </model>
-
-    <!-- 세차장 입구 바닥 레일 (노란색) -->
-    <model name="rail_left">
+    <!-- 기둥 상단 연결 바 -->
+    <model name="pillar_crossbar">
       <static>true</static>
-      <pose>3.5 1.0 0.02 0 0 0</pose>
+      <pose>0 -3 1.35 0 0 0</pose>
       <link name="link">
         <visual name="visual">
-          <geometry><box><size>1.5 0.06 0.04</size></box></geometry>
+          <geometry><box><size>0.15 1.6 0.12</size></box></geometry>
           <material>
-            <ambient>1 1 0 1</ambient>
-            <diffuse>1 1 0 1</diffuse>
-            <emissive>0.5 0.5 0 1</emissive>
+            <ambient>0.8 0.4 0 1</ambient>
+            <diffuse>0.8 0.4 0 1</diffuse>
+            <emissive>0.5 0.2 0 1</emissive>
           </material>
         </visual>
       </link>
     </model>
 
-    <model name="rail_right">
-      <static>true</static>
-      <pose>3.5 -1.0 0.02 0 0 0</pose>
-      <link name="link">
-        <visual name="visual">
-          <geometry><box><size>1.5 0.06 0.04</size></box></geometry>
-          <material>
-            <ambient>1 1 0 1</ambient>
-            <diffuse>1 1 0 1</diffuse>
-            <emissive>0.5 0.5 0 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <!-- 세차장 건물 벽 (배경) -->
-    <model name="carwash_wall">
-      <static>true</static>
-      <pose>4.5 0 1.5 0 0 0</pose>
-      <link name="link">
-        <visual name="visual">
-          <geometry><box><size>0.3 5 3</size></box></geometry>
-          <material>
-            <ambient>0.7 0.7 0.7 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
-          </material>
-        </visual>
-        <collision name="collision">
-          <geometry><box><size>0.3 5 3</size></box></geometry>
-        </collision>
-      </link>
-    </model>
-
-    <!-- ====== 탑뷰 카메라 (전체 조감) ====== -->
+    <!-- ====== 탑뷰 카메라 ====== -->
+    <!-- U자 경로 전체 조감: 중심 (-0.4, -1.5), z=5.5 -->
     <model name="overhead_cam_model">
       <static>true</static>
-      <pose>-1 0 10 0 1.5707963 0</pose>
+      <pose>-0.4 -1.5 5.5 0 1.5707963 0</pose>
       <link name="link">
         <visual name="visual">
           <geometry><box><size>0.15 0.15 0.1</size></box></geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-          </material>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material>
         </visual>
         <sensor name="overhead_camera" type="camera">
           <always_on>true</always_on>
@@ -232,22 +480,18 @@
               <height>480</height>
               <format>R8G8B8</format>
             </image>
-            <clip>
-              <near>0.5</near>
-              <far>100</far>
-            </clip>
+            <clip><near>0.5</near><far>100</far></clip>
           </camera>
           <topic>/overhead/image_raw</topic>
         </sensor>
       </link>
     </model>
 
-    <!-- ====== 로봇 차량 (납작한 AGV 스타일) ====== -->
-    <!-- 시작: x=-5 (정차구역에서 1m 뒤), y=0.5 (측면 오프셋) -->
+    <!-- ====== 로봇 차량 (U자 경로 시작점) ====== -->
+    <!-- 시작: x=-4, y=0.5 (파킹 마커에서 0.5m 북쪽 오프셋) -->
     <model name="robot_car">
-      <pose>-5 0.5 0.1 0 0 0</pose>
+      <pose>-4 0.5 0.1 0 0 0</pose>
 
-      <!-- 차체 (납작한 AGV 형태) -->
       <link name="base_link">
         <inertial>
           <mass>5.0</mass>
@@ -269,25 +513,18 @@
         </visual>
       </link>
 
-      <!-- 왼쪽 바퀴 -->
       <link name="left_wheel">
         <pose>0 0.22 0 -1.5707963 0 0</pose>
         <inertial>
           <mass>0.3</mass>
-          <inertia>
-            <ixx>0.005</ixx><iyy>0.005</iyy><izz>0.005</izz>
-            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
-          </inertia>
+          <inertia><ixx>0.005</ixx><iyy>0.005</iyy><izz>0.005</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
         </inertial>
         <collision name="collision">
           <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
         </collision>
         <visual name="visual">
           <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
-          <material>
-            <ambient>0.1 0.1 0.1 1</ambient>
-            <diffuse>0.1 0.1 0.1 1</diffuse>
-          </material>
+          <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
         </visual>
       </link>
 
@@ -300,25 +537,18 @@
         </axis>
       </joint>
 
-      <!-- 오른쪽 바퀴 -->
       <link name="right_wheel">
         <pose>0 -0.22 0 -1.5707963 0 0</pose>
         <inertial>
           <mass>0.3</mass>
-          <inertia>
-            <ixx>0.005</ixx><iyy>0.005</iyy><izz>0.005</izz>
-            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
-          </inertia>
+          <inertia><ixx>0.005</ixx><iyy>0.005</iyy><izz>0.005</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
         </inertial>
         <collision name="collision">
           <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
         </collision>
         <visual name="visual">
           <geometry><cylinder><radius>0.1</radius><length>0.04</length></cylinder></geometry>
-          <material>
-            <ambient>0.1 0.1 0.1 1</ambient>
-            <diffuse>0.1 0.1 0.1 1</diffuse>
-          </material>
+          <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
         </visual>
       </link>
 
@@ -331,7 +561,7 @@
         </axis>
       </joint>
 
-      <!-- 카메라 링크 (전방 + 약간 하향, 바닥선 & 기둥 모두 감지) -->
+      <!-- 카메라 링크 (전방 + 약간 하향) -->
       <link name="camera_link">
         <pose>0.35 0 0.18 0 0.3 0</pose>
         <sensor name="camera" type="camera">
@@ -344,10 +574,7 @@
               <height>480</height>
               <format>R8G8B8</format>
             </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
+            <clip><near>0.1</near><far>100</far></clip>
           </camera>
           <topic>/camera/image_raw</topic>
         </sensor>
@@ -358,7 +585,6 @@
         <child>camera_link</child>
       </joint>
 
-      <!-- DiffDrive 플러그인 -->
       <plugin filename="gz-sim8-diff-drive-system" name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>
