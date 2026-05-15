@@ -102,21 +102,80 @@ ros2 launch parking_vision carwash.launch.py
 
 ---
 
-## ⬜ Day 3 — 2026-05-15 (예정)
+## ✅ Day 3 — 2026-05-15 (완료)
 
-**주제**: Gazebo 차량 실제 이동 + 정렬 시뮬레이션
+**주제**: 3단계 자율주행 시스템 완성 + 전체 시뮬레이션 검증
 
-### Day 3 작업 목표
-1. 로봇이 실제로 cmd_vel 받아 전진하면서 기둥을 향해 이동하는지 확인
-2. 기둥 중앙 오차 기반 자동 조향 → 정렬 완료 후 정지 동작 검증
-3. result.png 실시간 확인으로 시각적 디버깅
-4. 필요 시 PID 게인 튜닝
+### 완성된 기능
+
+#### 3-Phase 상태머신 (vision_node.py)
+
+| 단계 | 이름 | 동작 | 전환 조건 |
+|------|------|------|-----------|
+| Phase 1 | PARKING | 파란 마커(HSV 100-130) 감지 + 정렬 | marker_found=True + abs(error)<25px × 8틱 |
+| Phase 2 | LINE_FOLLOW | 직선 전진 (0.2 m/s, steering=0) | phase2_ticks>200 + pillar_seen × 8틱 |
+| Phase 3 | PILLAR_ALIGN | 주황 기둥 감지 + PID 정렬 | pillar_found=True + abs(error)<10px × 5틱 |
+| STOPPED | — | 정지 | — |
+
+#### 이중 카메라 합성 뷰
+- `/camera/image_raw` — 로봇 1인칭 카메라 (전방 주시)
+- `/overhead/image_raw` — 탑뷰 카메라 (x=-1, z=10, pitch=π/2)
+- 합성 이미지 저장: `/home/zeenee/result.png`
+
+#### 월드 레이아웃 (carwash.world)
+- x=-5: 로봇 시작 위치
+- x=-3.5: 파란 정차 마커 (Phase 1 타깃)
+- x=-3 ~ x=2.5: 흰 가이드 라인
+- x=3, y=±1.2: 주황 기둥 2개 (Phase 3 타깃)
+
+### 해결된 버그
+
+1. **노드 이중 실행 → 상태 진동** (`PARKING↔LINE_FOLLOW` 빠른 토글)
+   - 원인: 구 프로세스 미종료 상태에서 재실행
+   - 해결: 실행 전 `ps aux | grep -E "vision|control|gz|ros2" | ... | xargs -r kill -9`
+
+2. **error=0이 Phase 전환 차단**
+   - 원인: 마커가 화면 정중앙이면 error=0 → 이전 조건 `error != 0` 차단
+   - 해결: `marker_found` 불리언 플래그 도입
+
+3. **Phase 2→3 너무 이른 전환** (주행 4초 만에 기둥 감지)
+   - 원인: 소프트웨어 렌더링에서 emissive 기둥이 6m 거리에서도 큰 면적
+   - 해결: `phase2_ticks > 200` 타임가드 (20초 이상 주행 후에만 기둥 체크)
+
+4. **PID 적분 windup → 급격한 회전**
+   - 원인: Phase 2 직선 주행 중 적분 누적 → steer=-0.36 → 180도 회전
+   - 해결: 클램핑 `max(-80, min(80, integral + error))` + Phase 2에서 angular.z=0 고정
+
+5. **Phase 3에서 기둥 미감지** (error=0.0 계속)
+   - 원인: `h > w * 1.2` 조건이 기둥 하단부(납작한 형태)를 필터링
+   - 해결: `h > w * 0.3`으로 완화, 면적 기준 150→100px
+
+6. **Phase 3 STOPPED 미도달**
+   - 해결: `pillar_found=True + abs(error)<10px × 5틱` 정상 정렬 완료
+   - 폴백: `phase3_ticks > 50` (5초 기둥 미감지 → 기둥 사이 진입으로 간주)
+
+### 최종 시뮬레이션 결과 (launch_v7.txt)
+
+```
+[vision_node] Vision Node Started | Phase 1: PARKING DETECT
+[vision_node] → Phase 2: LINE FOLLOW 시작         ← 파란 마커 정렬 완료
+[vision_node] [DRIVE] tick:200/200 pillar_seen:0  ← 20초 직선 주행
+[vision_node] → Phase 3: PILLAR ALIGN 시작        ← 기둥 근접 감지
+[vision_node] [PHASE3] error: 43px → 22px → 8px  ← PID 수렴
+[vision_node] ✅ 정렬 완료! STOPPED               ← 완료!
+```
+
+**result.png**: 탑뷰에서 파란 로봇이 주황 기둥 두 개 사이 정중앙에 정렬 확인 ✅
 
 ### Day 3 실행 명령어
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch parking_vision carwash.launch.py
+# 구 프로세스 정리
+ps aux | grep -E "vision|control|gz|ros2" | grep -v grep | awk '{print $2}' | xargs -r kill -9
+
+# 빌드 후 실행
+source /opt/ros/jazzy/setup.bash && colcon build --packages-select parking_vision
+source install/setup.bash
+LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5 ros2 launch parking_vision carwash.launch.py
 ```
 
 ---
