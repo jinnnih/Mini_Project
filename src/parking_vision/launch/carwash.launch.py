@@ -13,9 +13,15 @@ def generate_launch_description():
 
     return LaunchDescription([
 
-        # Gazebo Sim 8 실행
+        # Gazebo Sim 8 실행 (소프트웨어 렌더링 - VMware 환경)
         ExecuteProcess(
             cmd=['gz', 'sim', world_file, '-r'],
+            additional_env={
+                'DISPLAY': ':0',
+                'LIBGL_ALWAYS_SOFTWARE': '1',
+                'MESA_GL_VERSION_OVERRIDE': '4.5',
+                'MESA_GLSL_VERSION_OVERRIDE': '450',
+            },
             output='screen'
         ),
 
@@ -25,6 +31,7 @@ def generate_launch_description():
             executable='parameter_bridge',
             arguments=[
                 '/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+                '/overhead/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
                 '/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',
             ],
             output='screen'
